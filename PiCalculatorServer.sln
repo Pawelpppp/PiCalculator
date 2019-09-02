@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.28307.645
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PiCalculatorServer", "PiCalculatorServer\PiCalculatorServer.csproj", "{191F16F3-7CB6-4E06-8EDA-B87F08256416}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PiCalculatorClient", "PiCalculatorClient\PiCalculatorClient.csproj", "{F153FBD2-C532-4237-9219-9D3D61E2970F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{191F16F3-7CB6-4E06-8EDA-B87F08256416}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{191F16F3-7CB6-4E06-8EDA-B87F08256416}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{191F16F3-7CB6-4E06-8EDA-B87F08256416}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F153FBD2-C532-4237-9219-9D3D61E2970F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F153FBD2-C532-4237-9219-9D3D61E2970F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F153FBD2-C532-4237-9219-9D3D61E2970F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F153FBD2-C532-4237-9219-9D3D61E2970F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
