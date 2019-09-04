@@ -1,7 +1,9 @@
-﻿using RabbitMQ.Client;
+﻿using Newtonsoft.Json;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Text;
+using PiCalculatorServer.MessageModels;
 
 namespace PiCalculatorServer
 {
@@ -19,11 +21,11 @@ namespace PiCalculatorServer
                 var consumer = new EventingBasicConsumer(channel);
                 channel.BasicConsume(queue: "rpc_queue",
                   autoAck: false, consumer: consumer);
-                Console.WriteLine(" [x] Awaiting RPC requests");
+                Console.WriteLine(" [Server] Awaiting RPC requests");
 
                 consumer.Received += (model, ea) =>
                 {
-                    string response = null;
+                    CalculatePiResponse response = null;
 
                     var body = ea.Body;
                     var props = ea.BasicProperties;
@@ -32,23 +34,26 @@ namespace PiCalculatorServer
 
                     try
                     {
-                        var message = Encoding.UTF8.GetString(body);
-                        int n = int.Parse(message);
-                        Console.WriteLine(" [.] fib({0})", message);
-                        response = fib(n).ToString();
+                        var deserialized = JsonConvert.DeserializeObject<CalculatePiMessage>(Encoding.UTF8.GetString(body));
+                        Console.WriteLine($" [Server] Calculate Pi with precision {deserialized.PrecisionResult}");
+                        response = new CalculatePiResponse(deserialized, fib(deserialized.PrecisionResult).ToString());
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(" [.] " + e.Message);
-                        response = "";
+                        Console.WriteLine(" [Server] " + e.Message);
+                        response = null;
                     }
                     finally
                     {
-                        var responseBytes = Encoding.UTF8.GetBytes(response);
-                        channel.BasicPublish(exchange: "", routingKey: props.ReplyTo,
-                          basicProperties: replyProps, body: responseBytes);
-                        channel.BasicAck(deliveryTag: ea.DeliveryTag,
-                          multiple: false);
+                        Console.WriteLine($" [Server] Send response: {response.Result} for { response.PrecisionResult}");
+                        channel.BasicPublish(
+                            exchange: "",
+                            routingKey: props.ReplyTo,
+                            basicProperties: replyProps,
+                            body: response.SelfConvertToBytes());
+                        channel.BasicAck(
+                            deliveryTag: ea.DeliveryTag,
+                            multiple: false);
                     }
                 };
 
@@ -57,12 +62,7 @@ namespace PiCalculatorServer
             }
         }
 
-        /// 
-
-        /// Assumes only valid positive integer input.
-        /// Don't expect this one to work for big numbers, and it's
-        /// probably the slowest recursive implementation possible.
-        /// 
+        //todo implement this method
         private static int fib(int n)
         {
             if (n == 0 || n == 1)

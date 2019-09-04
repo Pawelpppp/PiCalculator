@@ -1,8 +1,11 @@
-﻿using RabbitMQ.Client;
+﻿using Newtonsoft.Json;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Concurrent;
 using System.Text;
+using System.Threading.Tasks;
+using PiCalculatorClient.MessageModels;
 
 namespace PiCalculatorClient.RabbitMQ
 {
@@ -12,9 +15,8 @@ namespace PiCalculatorClient.RabbitMQ
         private readonly IModel channel;
         private readonly string replyQueueName;
         private readonly EventingBasicConsumer consumer;
-        private readonly BlockingCollection<string> respQueue = new BlockingCollection<string>();
         private readonly IBasicProperties props;
-
+       
         public RpcClient()
         {
             var factory = new ConnectionFactory() { HostName = "localhost" };
@@ -25,24 +27,26 @@ namespace PiCalculatorClient.RabbitMQ
             consumer = new EventingBasicConsumer(channel);
 
             props = channel.CreateBasicProperties();
-            var correlationId = Guid.NewGuid().ToString();
-            props.CorrelationId = correlationId;
+            props.CorrelationId = Guid.NewGuid().ToString();//todo save this value
             props.ReplyTo = replyQueueName;
 
-            consumer.Received += (model, ea) =>
-            {
-                var body = ea.Body;
-                var response = Encoding.UTF8.GetString(body);
-                if (ea.BasicProperties.CorrelationId == correlationId)
-                {
-                    respQueue.Add(response);
-                }
-            };
+            consumer.Received += ReceivedResponseSubscription;
         }
 
-        public string Call(string message)
+        private void ReceivedResponseSubscription(object sender, BasicDeliverEventArgs ea)
         {
-            var messageBytes = Encoding.UTF8.GetBytes(message);
+            var response = Encoding.UTF8.GetString(ea.Body);
+            var deserialized = JsonConvert.DeserializeObject<CalculatePiResponse>(response);
+
+            ReceivedResponse.Invoke(sender, new ResponseEventArgs(deserialized));
+            Console.WriteLine("[ReceivedResponseSubscription] recived response {0}", response);
+        }
+
+        public event EventHandler<ResponseEventArgs> ReceivedResponse;
+
+        public async Task AddToQueue(MessageModel messageModel)
+        {
+            var messageBytes = messageModel.SelfConvertToBytes();
             channel.BasicPublish(
                 exchange: "",
                 routingKey: "rpc_queue",
@@ -53,8 +57,6 @@ namespace PiCalculatorClient.RabbitMQ
                 consumer: consumer,
                 queue: replyQueueName,
                 autoAck: true);
-
-            return respQueue.Take();
         }
 
         public void Close()
