@@ -1,22 +1,21 @@
 ﻿using Newtonsoft.Json;
+using PiCalculatorClient.MessageModels;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
-using System.Collections.Concurrent;
 using System.Text;
 using System.Threading.Tasks;
-using PiCalculatorClient.MessageModels;
 
 namespace PiCalculatorClient.RabbitMQ
 {
-    public class RpcClient
+    public class RpcClient : IDisposable
     {
         private readonly IConnection connection;
         private readonly IModel channel;
         private readonly string replyQueueName;
         private readonly EventingBasicConsumer consumer;
         private readonly IBasicProperties props;
-       
+
         public RpcClient()
         {
             var factory = new ConnectionFactory() { HostName = "localhost" };
@@ -62,6 +61,12 @@ namespace PiCalculatorClient.RabbitMQ
         public void Close()
         {
             connection.Close();
+        }
+
+        public void Dispose()
+        {
+            Close();
+            channel.Dispose();//todo dispose pattern
         }
     }
 }

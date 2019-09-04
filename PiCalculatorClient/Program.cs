@@ -7,19 +7,21 @@ namespace PiCalculatorClient
 {
     class Program
     {
-        //private RpcClient rpcClient;
         static void Main(string[] args)
         {
             Console.WriteLine("Hello Client starts!");
             var rpcClient = new RpcClient();
+            var cancelClient= new CancelClient();
             rpcClient.ReceivedResponse += OnReceivedResponse;
-            for (int i = 15; i < 45; i++)
+            for (int i = 3; i < 145; i++)
             {
                 Console.WriteLine($" [Client] Calculate Pi with precision {i}");
                 var message = new MessageModel("CalculatePi", i);
                 rpcClient.AddToQueue(message);
 
             }
+
+            cancelClient.SendCancelMessage("new Guid");
             Console.Read();
             rpcClient.Close();
 
