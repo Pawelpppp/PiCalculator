@@ -10,8 +10,9 @@ namespace PiCalculatorClient
         static void Main(string[] args)
         {
             Console.WriteLine("Hello Client starts!");
+            var cancelClient = new CancelClient();
             var rpcClient = new RpcClient();
-            var cancelClient= new CancelClient();
+          
             rpcClient.ReceivedResponse += OnReceivedResponse;
             for (int i = 3; i < 145; i++)
             {
@@ -21,7 +22,7 @@ namespace PiCalculatorClient
 
             }
 
-            cancelClient.SendCancelMessage("new Guid");
+            cancelClient.SendCancelMessage(Guid.NewGuid().ToString());
             Console.Read();
             rpcClient.Close();
 

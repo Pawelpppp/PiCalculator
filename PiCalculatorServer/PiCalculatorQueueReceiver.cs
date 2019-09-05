@@ -10,11 +10,14 @@ namespace PiCalculatorServer
     public class PiCalculatorQueueReceiver : IDisposable
     {
         private RpcServer rpcServer;
-        private const string rpcServerName = "rpc_queue";
-        public PiCalculatorQueueReceiver()
+        private const string RpcServerName = "rpc_queue";
+        private readonly CancelSynchronizedCollection _cancelSynchronizedCollection;
+
+        public PiCalculatorQueueReceiver(CancelSynchronizedCollection cancelSynchronizedCollection)
         {
-            rpcServer = new RpcServer(rpcServerName);
+            rpcServer = new RpcServer(RpcServerName);
             rpcServer.Received += OnReceived;
+            _cancelSynchronizedCollection = cancelSynchronizedCollection;
         }
         private void OnReceived(object sender, BasicDeliverEventArgs ea)
         {
@@ -29,8 +32,9 @@ namespace PiCalculatorServer
             {
                 var deserialized = JsonConvert.DeserializeObject<CalculatePiMessage>(Encoding.UTF8.GetString(body));
                 Console.WriteLine($" [Server] Calculate Pi with precision {deserialized.PrecisionResult}");
-
-                var pi = PiCalculator.CalculatePi(deserialized.PrecisionResult);
+                
+                //check if the request was canceled
+                string pi = _cancelSynchronizedCollection.IsInCollection(deserialized) ? "-1" : PiCalculator.CalculatePi(deserialized.PrecisionResult);
                 response = new CalculatePiResponse(deserialized, pi);
             }
             catch (Exception e)

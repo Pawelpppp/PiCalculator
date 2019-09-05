@@ -9,7 +9,7 @@ using System.Text;
 namespace PiCalculatorServer.RabbitMQ
 {
     
-    public class RpcServer
+    public class RpcServer//dispose
     {
         private readonly string queueName;
         private readonly IConnection connection;
@@ -21,8 +21,12 @@ namespace PiCalculatorServer.RabbitMQ
 
             connection = factory.CreateConnection();
             Channel = connection.CreateModel();
-            Channel.QueueDeclare(queue: queueName, durable: false,
-                exclusive: false, autoDelete: false, arguments: null);
+            Channel.QueueDeclare(
+                queue: queueName, 
+                durable: false,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null);
             Channel.BasicQos(0, 1, false);
             var consumer = new EventingBasicConsumer(Channel);
             Channel.BasicConsume(queue: queueName,
