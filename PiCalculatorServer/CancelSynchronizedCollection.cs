@@ -6,11 +6,11 @@ namespace PiCalculatorServer
 {
     public class CancelSynchronizedCollection
     {
-        private ConcurrentBag<Guid> cancelCollection;
+        private BlockingCollection<Guid> cancelCollection;
 
         public CancelSynchronizedCollection()
         {
-            cancelCollection = new ConcurrentBag<Guid>();
+            cancelCollection = new BlockingCollection<Guid>();
         }
 
         public void AddElement(Guid newElment)
@@ -20,6 +20,19 @@ namespace PiCalculatorServer
 
         public bool IsInCollection(CalculatePiMessage deserialized)
         {
+            return IsInCollection(deserialized.Id);
+        }
+
+        private bool IsInCollection(Guid id)
+        {
+            foreach (var itemGuid in cancelCollection)
+            {
+                if (itemGuid==id)
+                {
+                    return true;
+                }
+            }
+
             return false;
         }
 
