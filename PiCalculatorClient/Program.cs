@@ -1,7 +1,6 @@
-﻿using PiCalculatorClient.RabbitMQ;
+﻿using PiCalculatorClient.MessageModels;
+using PiCalculatorClient.RabbitMQ;
 using System;
-using System.Threading;
-using PiCalculatorClient.MessageModels;
 
 namespace PiCalculatorClient
 {
@@ -12,17 +11,23 @@ namespace PiCalculatorClient
             Console.WriteLine("Hello Client starts!");
             var cancelClient = new CancelClient();
             var rpcClient = new RpcClient();
-          
+
             rpcClient.ReceivedResponse += OnReceivedResponse;
-            for (int i = 3; i < 145; i++)
+            for (int i = 0; i < 300; i++)
             {
                 Console.WriteLine($" [Client] Calculate Pi with precision {i}");
                 var message = new MessageModel("CalculatePi", i);
                 rpcClient.AddToQueue(message);
 
+                // Cancel some request
+                if (i > 138 && i < 200)
+                {
+                    cancelClient.SendCancelMessage(message.Id.ToString());
+                }
+
+
             }
 
-            cancelClient.SendCancelMessage(Guid.NewGuid().ToString());
             Console.Read();
             rpcClient.Close();
 
